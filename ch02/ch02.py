@@ -1,6 +1,4 @@
 # coding: utf-8
-
-
 import sys
 from python_environment_check import check_packages
 import numpy as np
@@ -11,22 +9,12 @@ from matplotlib.colors import ListedColormap
 
 # # Machine Learning with PyTorch and Scikit-Learn  
 # # -- Code Examples
-
 # ## Package version checks
-
 # Add folder to path in order to load from the check_packages.py script:
-
-
 
 sys.path.insert(0, '..')
 
-
 # Check recommended package versions:
-
-
-
-
-
 d = {
     'numpy': '1.21.2',
     'matplotlib': '3.4.3',
@@ -54,41 +42,15 @@ check_packages(d)
 # - [Summary](#Summary)
 
 
-
-
-
-
 # # Artificial neurons - a brief glimpse into the early history of machine learning
-
-
-
-
 
 # ## The formal definition of an artificial neuron
 
-
-
-
-
 # ## The perceptron learning rule
-
-
-
-
-
-
-
-
-
 
 # # Implementing a perceptron learning algorithm in Python
 
 # ## An object-oriented perceptron API
-
-
-
-
-
 class Perceptron:
     """Perceptron classifier.
 
@@ -113,7 +75,7 @@ class Perceptron:
 
     """
     def __init__(self, eta=0.01, n_iter=50, random_state=1):
-        self.eta = eta
+        self.eta = eta  # learning rate, quao rapido o modelo converge. Multiplicador do delta dos pesos
         self.n_iter = n_iter
         self.random_state = random_state
 
@@ -123,10 +85,10 @@ class Perceptron:
         Parameters
         ----------
         X : {array-like}, shape = [n_examples, n_features]
-          Training vectors, where n_examples is the number of examples and
-          n_features is the number of features.
-        y : array-like, shape = [n_examples]
-          Target values.
+          Training vectors, where n_examples is the number of lines and
+                                  n_features is the number of inputs.
+        y : array-like, shape = [n_labels]
+          Label vector,  where itens are targets (0 or 1) for training
 
         Returns
         -------
@@ -134,19 +96,21 @@ class Perceptron:
 
         """
         rgen = np.random.RandomState(self.random_state)
-        self.w_ = rgen.normal(loc=0.0, scale=0.01, size=X.shape[1])
-        self.b_ = np.float_(0.)
+        #self.w_ = np.zeros(X.shape[1])
+        self.w_ = rgen.normal(loc=0.0, scale=0.01, size=X.shape[1])  #inicializa pesos com pequenos valores aleatórios de uma distrib. normal
+        self.b_ = np.float_(0.)  #inicializa bias
         
         self.errors_ = []
 
-        for _ in range(self.n_iter):
+        for _ in range(self.n_iter):  #pelo no. de iterações definido
             errors = 0
             for xi, target in zip(X, y):
-                update = self.eta * (target - self.predict(xi))
+                update = self.eta * (target - self.predict(xi))   #eta = learning rate (mu)
                 self.w_ += update * xi
                 self.b_ += update
-                errors += int(update != 0.0)
-            self.errors_.append(errors)
+                errors += int(update != 0.0)  # soma 1 a errors se update diferente de zero
+
+            self.errors_.append(errors)  # salva a quantidade de erros de cada iteração
         return self
 
     def net_input(self, X):
@@ -158,90 +122,74 @@ class Perceptron:
         return np.where(self.net_input(X) >= 0.0, 1, 0)
 
 
-
-
-v1 = np.array([1, 2, 3])
-v2 = 0.5 * v1
-np.arccos(v1.dot(v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-
-
-
+# ==========================================================================================================
 # ## Training a perceptron model on the Iris dataset
-
 # ...
 
 # ### Reading-in the Iris data
-
-
-
-
 try:
     s = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
     print('From URL:', s)
     df = pd.read_csv(s,
                      header=None,
                      encoding='utf-8')
-    
 except HTTPError:
     s = 'iris.data'
     print('From local Iris path:', s)
     df = pd.read_csv(s,
                      header=None,
                      encoding='utf-8')
-    
-df.tail()
+
+print( df.tail() )
 
 
 
-# ### Plotting the Iris data
-
-
-
+# ### Plotting the Iris data (measures in cm):
+#    COLUMNS: <sepal length>,  <sepal width>, <petal length>, <petal width>, <class>
+#    CLASS:   Iris-Setosa | Iris-Versicolour | Iris-Virginica
 
 # select setosa and versicolor
+# a partir da linha 0, traga 100 linhas do dataset e selecione o valor da coluna 4 (descrição da classe de Iris)
 y = df.iloc[0:100, 4].values
+# substitua no array a descrição por 0 ou 1  (setosa ou outra)
+#aqui se sabe do dataset que as 1as. 50 linhas são Setosa e que da posicao 51 até 100 são Versicolor
 y = np.where(y == 'Iris-setosa', 0, 1)
 
-# extract sepal length and petal length
+# monte um array de arrays com [sepal length, petal length] para as 100 primeiras linhas do dataset
 X = df.iloc[0:100, [0, 2]].values
 
 # plot data
-plt.scatter(X[:50, 0], X[:50, 1],
-            color='red', marker='o', label='Setosa')
-plt.scatter(X[50:100, 0], X[50:100, 1],
-            color='blue', marker='s', label='Versicolor')
-
+#aqui se sabe do dataset que as 1as. 50 linhas são Setosa e que da posicao 51 até 100 são Versicolor
+#plota-se aqui o par [col0,col1], ou seja, [Sepal,Petal] de cada linha do dataset
+plt.scatter(X[:50, 0],    X[:50, 1],    color='red', marker='o', label='Setosa'     )
+plt.scatter(X[50:100, 0], X[50:100, 1], color='blue', marker='s', label='Versicolor')
 plt.xlabel('Sepal length [cm]')
 plt.ylabel('Petal length [cm]')
 plt.legend(loc='upper left')
+plt.title('\nplot 1')
 
 # plt.savefig('images/02_06.png', dpi=300)
 plt.show()
 
 
-
 # ### Training the perceptron model
-
-
 
 ppn = Perceptron(eta=0.1, n_iter=10)
 
+# X é o array de arrays contendo [Sepal,Petal] para as 100 primeiras linhas do dataset
+# y é o array de labels, sendo 0=Setosa e 1=Versicolor
 ppn.fit(X, y)
 
 plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
 plt.xlabel('Epochs')
 plt.ylabel('Number of updates')
-
+plt.title('\nFitting')
 # plt.savefig('images/02_07.png', dpi=300)
 plt.show()
 
 
 
 # ### A function for plotting decision regions
-
-
-
-
 
 def plot_decision_regions(X, y, classifier, resolution=0.02):
 
@@ -272,18 +220,16 @@ def plot_decision_regions(X, y, classifier, resolution=0.02):
                     edgecolor='black')
 
 
-
-
 plot_decision_regions(X, y, classifier=ppn)
 plt.xlabel('Sepal length [cm]')
 plt.ylabel('Petal length [cm]')
 plt.legend(loc='upper left')
-
+plt.title('\ndecision regions')
 
 #plt.savefig('images/02_08.png', dpi=300)
 plt.show()
 
-
+exit()
 
 # # Adaptive linear neurons and the convergence of learning
 
@@ -292,17 +238,7 @@ plt.show()
 # ## Minimizing cost functions with gradient descent
 
 
-
-
-
-
-
-
-
-
 # ## Implementing an adaptive linear neuron in Python
-
-
 
 class AdalineGD:
     """ADAptive LInear NEuron classifier.
@@ -389,7 +325,6 @@ class AdalineGD:
 
 
 
-
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
 
 ada1 = AdalineGD(n_iter=15, eta=0.1).fit(X, y)
@@ -410,25 +345,12 @@ plt.show()
 
 
 
-
-
-
-
 # ## Improving gradient descent through feature scaling
-
-
-
-
-
-
 
 # standardize features
 X_std = np.copy(X)
 X_std[:, 0] = (X[:, 0] - X[:, 0].mean()) / X[:, 0].std()
 X_std[:, 1] = (X[:, 1] - X[:, 1].mean()) / X[:, 1].std()
-
-
-
 
 ada_gd = AdalineGD(n_iter=20, eta=0.5)
 ada_gd.fit(X_std, y)
@@ -453,8 +375,6 @@ plt.show()
 
 
 # ## Large scale machine learning and stochastic gradient descent
-
-
 
 class AdalineSGD:
     """ADAptive LInear NEuron classifier.
@@ -600,12 +520,4 @@ ada_sgd.partial_fit(X_std[0, :], y[0])
 # --- 
 # 
 # Readers may ignore the following cell
-
-
-
-
-
-
-
-
 
